@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import {
   AlertTriangle,
   Antenna,
@@ -77,6 +77,14 @@ type TeamMeta = {
   abbr: string;
 };
 
+type ViewerMarket = {
+  zip: string;
+  city: string;
+  dma: string;
+  localAffiliate: string;
+  verification: "confirmed" | "lookup" | "unverified";
+};
+
 const capabilityLabels: Record<CapabilityKey, string> = {
   antenna: "Antenna",
   providerBundle: "Live-TV bundle",
@@ -125,24 +133,27 @@ const initialCapabilities: Record<CapabilityKey, boolean> = {
   nflPlusAudio: true,
 };
 
-const marketOptions = [
+const knownMarkets: ViewerMarket[] = [
   {
     zip: "94533",
     city: "Fairfield, CA",
     dma: "Sacramento-Stockton-Modesto",
     localAffiliate: "KCRA 3",
+    verification: "confirmed",
   },
   {
     zip: "94105",
     city: "San Francisco, CA",
     dma: "San Francisco-Oakland-San Jose",
     localAffiliate: "KNTV 11",
+    verification: "confirmed",
   },
   {
     zip: "90012",
     city: "Los Angeles, CA",
     dma: "Los Angeles",
     localAffiliate: "KNBC 4",
+    verification: "confirmed",
   },
 ];
 
@@ -723,14 +734,46 @@ function isOwned(path: WatchPath, capabilities: Record<CapabilityKey, boolean>) 
 
 function pathScore(path: WatchPath, capabilities: Record<CapabilityKey, boolean>) {
   const owned = isOwned(path, capabilities);
+  if (path.confidence === "pending") return 4;
+  if (path.confidence === "unavailable") return 6;
   if (owned && path.entitlement === "free") return 1;
   if (owned) return 2;
-  if (path.medium === "radio" || path.medium === "audio_app") return 4;
+  if (path.medium === "radio" || path.medium === "audio_app") return 5;
   return 3;
 }
 
-function rankedPaths(game: Game, capabilities: Record<CapabilityKey, boolean>) {
-  return [...game.local, ...game.national, ...game.audio].sort((a, b) => {
+function localVerificationPath(game: Game, market: ViewerMarket): WatchPath {
+  return {
+    id: `${game.id}-${market.zip}-local-review`,
+    label: "Local station check",
+    network: "ZIP-specific local TV",
+    medium: "ota_tv",
+    territory: market.dma,
+    entitlement: "free",
+    requirement: "none",
+    devices: ["antenna", "live-TV bundle"],
+    source: "ZIP lookup; DMA and EPG verification pending",
+    verifiedAt: new Date().toISOString(),
+    confidence: "pending",
+    note: `ZIP ${market.zip} resolves to ${market.city}. Exact local affiliate and game carriage still require verified DMA and EPG data.`,
+  };
+}
+
+function pathsForGame(game: Game, market: ViewerMarket) {
+  const confirmedLocal = game.local.filter(
+    (path) => path.territory.includes(market.dma) || market.dma.includes(path.territory),
+  );
+  const needsLocalReview = confirmedLocal.length === 0 && market.zip !== "94533";
+  return [
+    ...confirmedLocal,
+    ...game.national,
+    ...(needsLocalReview ? [localVerificationPath(game, market)] : []),
+    ...game.audio,
+  ];
+}
+
+function rankedPaths(game: Game, capabilities: Record<CapabilityKey, boolean>, market: ViewerMarket) {
+  return pathsForGame(game, market).sort((a, b) => {
     const score = pathScore(a, capabilities) - pathScore(b, capabilities);
     if (score !== 0) return score;
     return a.label.localeCompare(b.label);
@@ -769,11 +812,12 @@ function createIcs(game: Game, primaryPath: WatchPath | undefined) {
 
 export default function Home() {
   const [capabilities, setCapabilities] = useState(initialCapabilities);
-  const [zip, setZip] = useState("94533");
+  const [zipInput, setZipInput] = useState("94533");
+  const [market, setMarket] = useState<ViewerMarket>(knownMarkets[0]);
+  const [zipStatus, setZipStatus] = useState("Verified local market loaded.");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState("no-lar-2026-pre");
 
-  const market = marketOptions.find((item) => item.zip === zip) ?? marketOptions[0];
   const filteredGames = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     if (!normalized) return games;
@@ -788,7 +832,7 @@ export default function Home() {
     filteredGames.find((game) => game.id === selectedId) ??
     games.find((game) => game.id === selectedId) ??
     games[0];
-  const selectedPaths = rankedPaths(selectedGame, capabilities);
+  const selectedPaths = rankedPaths(selectedGame, capabilities, market);
   const primaryPath = selectedPaths[0];
   const confirmedCount = games.filter((game) => game.status === "confirmed").length;
   const pendingCount = games.filter((game) => game.status === "pending").length;
@@ -798,8 +842,59 @@ export default function Home() {
     setCapabilities((current) => ({ ...current, [key]: !current[key] }));
   }
 
+  async function searchZip(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const normalizedZip = zipInput.replace(/\D/g, "").slice(0, 5);
+    setZipInput(normalizedZip);
+
+    if (normalizedZip.length !== 5) {
+      setZipStatus("Enter a 5-digit U.S. ZIP code.");
+      return;
+    }
+
+    const knownMarket = knownMarkets.find((item) => item.zip === normalizedZip);
+    if (knownMarket) {
+      setMarket(knownMarket);
+      setZipStatus("Verified sample market loaded.");
+      return;
+    }
+
+    setZipStatus("Looking up ZIP...");
+
+    try {
+      const response = await fetch(`https://api.zippopotam.us/us/${normalizedZip}`);
+      if (!response.ok) throw new Error("ZIP lookup failed");
+      const payload = (await response.json()) as {
+        places?: Array<{
+          "place name"?: string;
+          "state abbreviation"?: string;
+        }>;
+      };
+      const place = payload.places?.[0];
+      const city = place?.["place name"] ?? "Unknown city";
+      const state = place?.["state abbreviation"] ?? "US";
+      setMarket({
+        zip: normalizedZip,
+        city: `${city}, ${state}`,
+        dma: "DMA lookup needed",
+        localAffiliate: "Affiliate verification needed",
+        verification: "lookup",
+      });
+      setZipStatus("ZIP found. Exact TV market still needs verified DMA data.");
+    } catch {
+      setMarket({
+        zip: normalizedZip,
+        city: `ZIP ${normalizedZip}`,
+        dma: "DMA lookup needed",
+        localAffiliate: "Affiliate verification needed",
+        verification: "unverified",
+      });
+      setZipStatus("ZIP saved, but the public place lookup did not respond.");
+    }
+  }
+
   function downloadCalendar(game: Game) {
-    const ics = createIcs(game, rankedPaths(game, capabilities)[0]);
+    const ics = createIcs(game, rankedPaths(game, capabilities, market)[0]);
     const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -838,24 +933,42 @@ export default function Home() {
             <MapPin aria-hidden="true" />
             <span>Viewer Context</span>
           </div>
-          <div className="field-row">
+          <form className="zip-search" onSubmit={searchZip}>
             <label htmlFor="zip">ZIP</label>
-            <select id="zip" value={zip} onChange={(event) => setZip(event.target.value)}>
-              {marketOptions.map((option) => (
-                <option key={option.zip} value={option.zip}>
-                  {option.zip} - {option.city}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div>
+              <input
+                id="zip"
+                inputMode="numeric"
+                maxLength={5}
+                pattern="[0-9]{5}"
+                placeholder="Enter any ZIP"
+                type="search"
+                value={zipInput}
+                onChange={(event) => setZipInput(event.target.value.replace(/\D/g, "").slice(0, 5))}
+              />
+              <button type="submit">
+                <Search aria-hidden="true" />
+                <span>Search</span>
+              </button>
+            </div>
+          </form>
+          <p className="lookup-status">{zipStatus}</p>
           <dl className="context-list">
+            <div>
+              <dt>Location</dt>
+              <dd>{market.city}</dd>
+            </div>
             <div>
               <dt>TV market</dt>
               <dd>{market.dma}</dd>
             </div>
             <div>
-              <dt>Local NBC</dt>
+              <dt>Local affiliate</dt>
               <dd>{market.localAffiliate}</dd>
+            </div>
+            <div>
+              <dt>Confidence</dt>
+              <dd>{market.verification === "confirmed" ? "Verified sample market" : "ZIP resolved, broadcast market pending"}</dd>
             </div>
             <div>
               <dt>Provider status</dt>
@@ -924,7 +1037,7 @@ export default function Home() {
 
           <div className="game-list">
             {filteredGames.map((game) => {
-              const paths = rankedPaths(game, capabilities);
+              const paths = rankedPaths(game, capabilities, market);
               const best = paths[0];
               const owned = best ? isOwned(best, capabilities) : false;
               const bestLogo = best ? logoForPath(best, game) : null;

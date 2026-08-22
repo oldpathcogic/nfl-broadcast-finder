@@ -32,6 +32,8 @@ test("server-renders the NFL Broadcast Finder shell", async () => {
   assert.match(html, /<title>NFL Broadcast Finder<\/title>/i);
   assert.match(html, /Find the lawful way to watch or listen before kickoff\./);
   assert.match(html, /Viewer Context/);
+  assert.match(html, /Enter any ZIP/);
+  assert.match(html, /Verified local market loaded\./);
   assert.match(html, /Watch Setup/);
   assert.match(html, /Saints at Rams/);
   assert.match(html, /KCRA 3/);
@@ -46,6 +48,7 @@ test("documents the product boundary and next build steps", async () => {
 
   assert.match(readme, /^# NFL Broadcast Finder/m);
   assert.match(readme, /does not bypass rights, blackouts, or subscriptions/);
+  assert.match(readme, /Searchable viewer context for any 5-digit U\.S\. ZIP code/);
   assert.match(readme, /Team logos are loaded from ESPN/);
-  assert.match(readme, /Add ZIP-to-DMA and market affiliate data/);
+  assert.match(readme, /licensed ZIP-to-DMA and market\s+affiliate data/);
 });

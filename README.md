@@ -10,7 +10,8 @@ real feed or operator review before production use.
 ## What Works Now
 
 - Canonical game ledger for the sample preseason slate.
-- Viewer context for Fairfield, San Francisco, and Los Angeles ZIP examples.
+- Searchable viewer context for any 5-digit U.S. ZIP code, with verified
+  sample markets and transparent fallback states for unverified markets.
 - Watch setup toggles for antenna, live-TV bundle, ESPN Unlimited, NFL Network,
   and NFL+ audio.
 - Ranked watch/listen paths based on the viewer's current setup.
@@ -51,6 +52,7 @@ The local preview usually runs at `http://localhost:3000/`.
 1. Move the seed game/outlet records into a typed data module or database.
 2. Add a schedule ingestion adapter for Sportradar, SportsDataIO, or another
    licensed provider.
-3. Add ZIP-to-DMA and market affiliate data with user override support.
+3. Replace the public ZIP place lookup with licensed ZIP-to-DMA and market
+   affiliate data with user override support.
 4. Add local EPG/source observation records and a moderator review queue.
 5. Add persistent user profiles, alert rules, and recurring calendar feeds.
