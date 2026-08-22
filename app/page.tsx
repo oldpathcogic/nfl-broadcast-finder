@@ -71,12 +71,50 @@ type Game = {
   }[];
 };
 
+type TeamMeta = {
+  name: string;
+  slug: string;
+  abbr: string;
+};
+
 const capabilityLabels: Record<CapabilityKey, string> = {
   antenna: "Antenna",
   providerBundle: "Live-TV bundle",
   espnUnlimited: "ESPN Unlimited",
   nflNetwork: "NFL Network",
   nflPlusAudio: "NFL+ audio",
+};
+
+const teamMeta: Record<string, TeamMeta> = {
+  "Arizona Cardinals": { name: "Arizona Cardinals", slug: "ari", abbr: "ARI" },
+  "Atlanta Falcons": { name: "Atlanta Falcons", slug: "atl", abbr: "ATL" },
+  "Baltimore Ravens": { name: "Baltimore Ravens", slug: "bal", abbr: "BAL" },
+  "Buffalo Bills": { name: "Buffalo Bills", slug: "buf", abbr: "BUF" },
+  "Chicago Bears": { name: "Chicago Bears", slug: "chi", abbr: "CHI" },
+  "Cincinnati Bengals": { name: "Cincinnati Bengals", slug: "cin", abbr: "CIN" },
+  "Cleveland Browns": { name: "Cleveland Browns", slug: "cle", abbr: "CLE" },
+  "Dallas Cowboys": { name: "Dallas Cowboys", slug: "dal", abbr: "DAL" },
+  "Detroit Lions": { name: "Detroit Lions", slug: "det", abbr: "DET" },
+  "Indianapolis Colts": { name: "Indianapolis Colts", slug: "ind", abbr: "IND" },
+  "Kansas City Chiefs": { name: "Kansas City Chiefs", slug: "kc", abbr: "KC" },
+  "Los Angeles Rams": { name: "Los Angeles Rams", slug: "lar", abbr: "LAR" },
+  "Miami Dolphins": { name: "Miami Dolphins", slug: "mia", abbr: "MIA" },
+  "Minnesota Vikings": { name: "Minnesota Vikings", slug: "min", abbr: "MIN" },
+  "New England Patriots": { name: "New England Patriots", slug: "ne", abbr: "NE" },
+  "New Orleans Saints": { name: "New Orleans Saints", slug: "no", abbr: "NO" },
+  "New York Giants": { name: "New York Giants", slug: "nyg", abbr: "NYG" },
+  "Philadelphia Eagles": { name: "Philadelphia Eagles", slug: "phi", abbr: "PHI" },
+  "Tampa Bay Buccaneers": { name: "Tampa Bay Buccaneers", slug: "tb", abbr: "TB" },
+  "Washington Commanders": { name: "Washington Commanders", slug: "wsh", abbr: "WSH" },
+};
+
+const outletLogos = {
+  espn: "https://commons.wikimedia.org/wiki/Special:Redirect/file/ESPN_wordmark.svg",
+  nbc: "https://commons.wikimedia.org/wiki/Special:Redirect/file/NBC_logo.svg",
+  nfl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/NFL_wordmark_logo_2008.svg",
+  nflPlus: "https://commons.wikimedia.org/wiki/Special:Redirect/file/NFL%2B_logo.svg",
+  cbs: "https://cdn.simpleicons.org/cbs/111111",
+  fox: "https://cdn.simpleicons.org/fox/111111",
 };
 
 const initialCapabilities: Record<CapabilityKey, boolean> = {
@@ -583,6 +621,91 @@ function mediumIcon(medium: WatchPath["medium"]) {
   return <Tv aria-hidden="true" />;
 }
 
+function teamLogo(team: TeamMeta) {
+  return `https://a.espncdn.com/i/teamlogos/nfl/500/${team.slug}.png`;
+}
+
+function teamsForGame(game: Game) {
+  const [awayName, homeName] = game.matchup.split(" at ");
+  return {
+    away: teamMeta[awayName] ?? { name: awayName, slug: "", abbr: awayName.slice(0, 3).toUpperCase() },
+    home: teamMeta[homeName] ?? { name: homeName, slug: "", abbr: homeName.slice(0, 3).toUpperCase() },
+  };
+}
+
+function logoForPath(path: WatchPath, game?: Game) {
+  const haystack = `${path.label} ${path.network}`.toLowerCase();
+  if (haystack.includes("espn")) return { src: outletLogos.espn, alt: "ESPN logo" };
+  if (haystack.includes("nbc") || haystack.includes("kcra")) return { src: outletLogos.nbc, alt: "NBC logo" };
+  if (haystack.includes("nfl+") || haystack.includes("nfl plus")) return { src: outletLogos.nflPlus, alt: "NFL+ logo" };
+  if (haystack.includes("nfl network")) return { src: outletLogos.nfl, alt: "NFL logo" };
+  if (haystack.includes("cbs")) return { src: outletLogos.cbs, alt: "CBS logo" };
+  if (haystack.includes("fox")) return { src: outletLogos.fox, alt: "FOX logo" };
+  if (game && haystack.includes("rams")) {
+    const { home } = teamsForGame(game);
+    return { src: teamLogo(home), alt: `${home.name} logo` };
+  }
+  return null;
+}
+
+function LogoImage({
+  src,
+  alt,
+  className = "",
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+}) {
+  return (
+    // Logo sources come from public external CDNs, so this component keeps plain img fallback behavior.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      alt={alt}
+      className={className}
+      decoding="async"
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      src={src}
+      onError={(event) => {
+        event.currentTarget.style.display = "none";
+      }}
+    />
+  );
+}
+
+function TeamPair({ game, size = "compact" }: { game: Game; size?: "compact" | "large" }) {
+  const { away, home } = teamsForGame(game);
+  return (
+    <div className={`team-pair ${size}`} aria-label={`${away.name} at ${home.name}`}>
+      <span>
+        {away.slug ? <LogoImage src={teamLogo(away)} alt={`${away.name} logo`} /> : away.abbr}
+      </span>
+      <span>
+        {home.slug ? <LogoImage src={teamLogo(home)} alt={`${home.name} logo`} /> : home.abbr}
+      </span>
+    </div>
+  );
+}
+
+function OutletLogo({
+  path,
+  game,
+  className = "",
+}: {
+  path?: WatchPath;
+  game?: Game;
+  className?: string;
+}) {
+  const logo = path ? logoForPath(path, game) : null;
+
+  return (
+    <div className={`logo-tile ${className}`}>
+      {logo ? <LogoImage src={logo.src} alt={logo.alt} /> : path ? mediumIcon(path.medium) : <AlertTriangle aria-hidden="true" />}
+    </div>
+  );
+}
+
 function stateLabel(state: AvailabilityState) {
   const labels: Record<AvailabilityState, string> = {
     confirmed: "Confirmed",
@@ -804,6 +927,7 @@ export default function Home() {
               const paths = rankedPaths(game, capabilities);
               const best = paths[0];
               const owned = best ? isOwned(best, capabilities) : false;
+              const bestLogo = best ? logoForPath(best, game) : null;
               return (
                 <button
                   type="button"
@@ -812,9 +936,13 @@ export default function Home() {
                   onClick={() => setSelectedId(game.id)}
                 >
                   <span className={`status-dot ${game.status}`} />
+                  <TeamPair game={game} />
                   <span>
                     <strong>{game.shortName}</strong>
                     <small>{formatTime(game.kickoffUtc)} - {best ? best.label : "No video path"}</small>
+                  </span>
+                  <span className="mini-outlet" aria-hidden="true">
+                    {bestLogo ? <LogoImage src={bestLogo.src} alt="" /> : best ? mediumIcon(best.medium) : null}
                   </span>
                   <em>{owned ? "Ready" : "Add"}</em>
                 </button>
@@ -825,6 +953,7 @@ export default function Home() {
 
         <section className="result-pane" aria-label="Selected game broadcast result">
           <div className="game-heading">
+            <TeamPair game={selectedGame} size="large" />
             <div>
               <p className="eyebrow">{selectedGame.week} - {stateLabel(selectedGame.status)}</p>
               <h2>{selectedGame.matchup}</h2>
@@ -848,7 +977,7 @@ export default function Home() {
           </div>
 
           <div className="primary-result">
-            <div className="primary-icon">{primaryPath ? mediumIcon(primaryPath.medium) : <AlertTriangle aria-hidden="true" />}</div>
+            <OutletLogo path={primaryPath} game={selectedGame} className="primary-icon" />
             <div>
               <p className="eyebrow">Best Path For {market.city}</p>
               <h3>{primaryPath ? primaryPath.label : "No verified outlet"}</h3>
@@ -869,7 +998,7 @@ export default function Home() {
               return (
                 <article className="path-card" key={path.id}>
                   <div className="path-card-top">
-                    <div className="path-icon">{mediumIcon(path.medium)}</div>
+                    <OutletLogo path={path} game={selectedGame} className="path-icon" />
                     <span className={`confidence-pill ${path.confidence}`}>
                       {stateLabel(path.confidence)}
                     </span>

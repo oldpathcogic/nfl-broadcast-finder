@@ -18,6 +18,8 @@ real feed or operator review before production use.
 - Calendar export with stable game UIDs and sequence support.
 - Verification queue showing where schedule feeds, local EPG data, and alert
   adapters plug in next.
+- Publicly hosted team and outlet logos to make teams, networks, and services
+  easier to identify at a glance.
 
 ## Product Boundary
 
@@ -27,6 +29,11 @@ lawful options that have been modeled for the viewer's location and setup.
 Seed schedule data is not live NFL schedule data. Before public release, connect
 licensed or official schedule feeds, local affiliate/EPG validation, and source
 retention that complies with each provider's terms.
+
+Team logos are loaded from ESPN's public team-logo CDN. Network and service
+marks are loaded from Wikimedia Commons or Simple Icons when available. These
+marks remain the property of their owners and should be reviewed for trademark,
+brand, and commercial-use requirements before a public launch.
 
 ## Local Development
 

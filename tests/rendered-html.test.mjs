@@ -35,6 +35,9 @@ test("server-renders the NFL Broadcast Finder shell", async () => {
   assert.match(html, /Watch Setup/);
   assert.match(html, /Saints at Rams/);
   assert.match(html, /KCRA 3/);
+  assert.match(html, /New Orleans Saints logo/);
+  assert.match(html, /Los Angeles Rams logo/);
+  assert.match(html, /NBC logo/);
   assert.doesNotMatch(html, /Your site is taking shape|react-loading-skeleton|codex-preview/);
 });
 
@@ -43,5 +46,6 @@ test("documents the product boundary and next build steps", async () => {
 
   assert.match(readme, /^# NFL Broadcast Finder/m);
   assert.match(readme, /does not bypass rights, blackouts, or subscriptions/);
+  assert.match(readme, /Team logos are loaded from ESPN/);
   assert.match(readme, /Add ZIP-to-DMA and market affiliate data/);
 });

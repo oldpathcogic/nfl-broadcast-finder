@@ -60,6 +60,11 @@ svg {
   stroke-width: 2;
 }
 
+img {
+  display: block;
+  max-width: 100%;
+}
+
 .app-shell {
   width: min(1480px, 100%);
   margin: 0 auto;
@@ -376,7 +381,7 @@ dd {
 
 .game-row {
   display: grid;
-  grid-template-columns: 10px minmax(0, 1fr) 38px;
+  grid-template-columns: 10px 54px minmax(0, 1fr) 34px 38px;
   align-items: center;
   gap: 10px;
   min-height: 68px;
@@ -416,6 +421,83 @@ dd {
   text-align: right;
 }
 
+.team-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  width: 54px;
+  min-width: 54px;
+  height: 36px;
+}
+
+.team-pair span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--ink-soft);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.team-pair span + span {
+  margin-left: -14px;
+}
+
+.team-pair img {
+  width: 27px;
+  height: 27px;
+  object-fit: contain;
+}
+
+.team-pair.large {
+  width: 98px;
+  min-width: 98px;
+  height: 68px;
+}
+
+.team-pair.large span {
+  width: 64px;
+  height: 64px;
+}
+
+.team-pair.large span + span {
+  margin-left: -30px;
+}
+
+.team-pair.large img {
+  width: 50px;
+  height: 50px;
+}
+
+.mini-outlet {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8f7f2;
+}
+
+.mini-outlet img {
+  width: 23px;
+  height: 23px;
+  object-fit: contain;
+}
+
+.mini-outlet svg {
+  width: 16px;
+  height: 16px;
+  color: var(--ink-soft);
+}
+
 .status-dot {
   width: 10px;
   height: 10px;
@@ -444,6 +526,7 @@ dd {
 }
 
 .game-heading {
+  align-items: center;
   margin-bottom: 16px;
 }
 
@@ -475,6 +558,26 @@ dd {
   border-radius: 8px;
   background: #ffffff;
   color: var(--charcoal);
+}
+
+.logo-tile {
+  overflow: hidden;
+}
+
+.logo-tile img {
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+}
+
+.primary-icon.logo-tile {
+  width: 58px;
+  height: 58px;
+}
+
+.primary-icon.logo-tile img {
+  width: 82%;
+  height: 82%;
 }
 
 .primary-result > div:nth-child(2) {
@@ -643,8 +746,25 @@ dd {
     flex-direction: column;
   }
 
+  .game-heading .team-pair.large {
+    align-self: flex-start;
+  }
+
   h1 {
     font-size: 2.18rem;
+  }
+
+  .game-row {
+    grid-template-columns: 10px 48px minmax(0, 1fr) 30px;
+  }
+
+  .game-row em {
+    display: none;
+  }
+
+  .team-pair {
+    width: 48px;
+    min-width: 48px;
   }
 
   .toggle-grid,
