@@ -30,7 +30,7 @@ test("server-renders the NFL Broadcast Finder shell", async () => {
 
   const html = await response.text();
   assert.match(html, /<title>NFL Broadcast Finder<\/title>/i);
-  assert.match(html, /Find the lawful way to watch or listen before kickoff\./);
+  assert.match(html, /Game day access, ranked by your ZIP and subscriptions\./);
   assert.match(html, /Viewer Context/);
   assert.match(html, /Enter any ZIP/);
   assert.match(html, /Verified local market loaded\./);
@@ -40,6 +40,10 @@ test("server-renders the NFL Broadcast Finder shell", async () => {
   assert.match(html, /New Orleans Saints logo/);
   assert.match(html, /Los Angeles Rams logo/);
   assert.match(html, /NBC logo/);
+  assert.match(html, /Streaming Matrix/);
+  assert.match(html, /Peacock/);
+  assert.match(html, /Paramount\+/);
+  assert.match(html, /Open KCRA/);
   assert.doesNotMatch(html, /Your site is taking shape|react-loading-skeleton|codex-preview/);
 });
 
@@ -50,5 +54,7 @@ test("documents the product boundary and next build steps", async () => {
   assert.match(readme, /does not bypass rights, blackouts, or subscriptions/);
   assert.match(readme, /Searchable viewer context for any 5-digit U\.S\. ZIP code/);
   assert.match(readme, /Team logos are loaded from ESPN/);
+  assert.match(readme, /Direct links to official watch\/service pages/);
+  assert.match(readme, /a link does not mean the\s+selected game is available on that service/);
   assert.match(readme, /licensed ZIP-to-DMA and market\s+affiliate data/);
 });

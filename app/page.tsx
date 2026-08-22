@@ -24,7 +24,13 @@ type CapabilityKey =
   | "providerBundle"
   | "espnUnlimited"
   | "nflNetwork"
-  | "nflPlusAudio";
+  | "nflPlusAudio"
+  | "peacock"
+  | "paramountPlus"
+  | "primeVideo"
+  | "netflix"
+  | "sundayTicket"
+  | "foxOne";
 
 type AvailabilityState =
   | "confirmed"
@@ -46,6 +52,8 @@ type WatchPath = {
   verifiedAt: string;
   confidence: AvailabilityState;
   note: string;
+  href?: string;
+  ctaLabel?: string;
 };
 
 type Game = {
@@ -91,6 +99,12 @@ const capabilityLabels: Record<CapabilityKey, string> = {
   espnUnlimited: "ESPN Unlimited",
   nflNetwork: "NFL Network",
   nflPlusAudio: "NFL+ audio",
+  peacock: "Peacock",
+  paramountPlus: "Paramount+",
+  primeVideo: "Prime Video",
+  netflix: "Netflix",
+  sundayTicket: "Sunday Ticket",
+  foxOne: "FOX One",
 };
 
 const teamMeta: Record<string, TeamMeta> = {
@@ -123,6 +137,11 @@ const outletLogos = {
   nflPlus: "https://commons.wikimedia.org/wiki/Special:Redirect/file/NFL%2B_logo.svg",
   cbs: "https://cdn.simpleicons.org/cbs/111111",
   fox: "https://cdn.simpleicons.org/fox/111111",
+  peacock: "https://cdn.simpleicons.org/peacock/ffffff",
+  paramountPlus: "https://cdn.simpleicons.org/paramountplus/ffffff",
+  primeVideo: "https://cdn.simpleicons.org/primevideo/ffffff",
+  netflix: "https://cdn.simpleicons.org/netflix/e50914",
+  youtube: "https://cdn.simpleicons.org/youtube/ff0033",
 };
 
 const initialCapabilities: Record<CapabilityKey, boolean> = {
@@ -131,7 +150,87 @@ const initialCapabilities: Record<CapabilityKey, boolean> = {
   espnUnlimited: false,
   nflNetwork: false,
   nflPlusAudio: true,
+  peacock: false,
+  paramountPlus: false,
+  primeVideo: false,
+  netflix: false,
+  sundayTicket: false,
+  foxOne: false,
 };
+
+const servicePackages: Array<{
+  id: CapabilityKey | "abc" | "cbs" | "fox" | "nbc";
+  label: string;
+  window: string;
+  detail: string;
+  href: string;
+  logo: string;
+}> = [
+  {
+    id: "paramountPlus",
+    label: "Paramount+",
+    window: "CBS local games",
+    detail: "Streams NFL on CBS games that air on the viewer's local CBS station.",
+    href: "https://www.paramountplus.com/shows/nfl-on-cbs/",
+    logo: outletLogos.paramountPlus,
+  },
+  {
+    id: "peacock",
+    label: "Peacock",
+    window: "NBC / SNF",
+    detail: "Used for NBC Sunday Night Football and select Peacock NFL games.",
+    href: "https://www.nfl.com/ways-to-watch/provider/peacock",
+    logo: outletLogos.peacock,
+  },
+  {
+    id: "primeVideo",
+    label: "Prime Video",
+    window: "TNF",
+    detail: "Home of many Thursday Night Football windows and select exclusives.",
+    href: "https://www.amazon.com/salp/tnf-help",
+    logo: outletLogos.primeVideo,
+  },
+  {
+    id: "netflix",
+    label: "Netflix",
+    window: "Select holiday games",
+    detail: "Used for select NFL event windows when scheduled by the league.",
+    href: "https://www.nfl.com/ways-to-watch",
+    logo: outletLogos.netflix,
+  },
+  {
+    id: "sundayTicket",
+    label: "Sunday Ticket",
+    window: "Out-of-market Sunday",
+    detail: "YouTube's out-of-market Sunday afternoon package, subject to restrictions.",
+    href: "https://tv.youtube.com/learn/nflsundayticket/",
+    logo: outletLogos.youtube,
+  },
+  {
+    id: "foxOne",
+    label: "FOX One",
+    window: "FOX local games",
+    detail: "Used for local FOX NFL availability where eligible.",
+    href: "https://www.nfl.com/ways-to-watch",
+    logo: outletLogos.fox,
+  },
+  {
+    id: "espnUnlimited",
+    label: "ESPN",
+    window: "MNF / ESPN windows",
+    detail: "ESPN app access depends on game window, package, and login.",
+    href: "https://www.espn.com/watch/",
+    logo: outletLogos.espn,
+  },
+  {
+    id: "nflNetwork",
+    label: "NFL Network",
+    window: "NFL Network games",
+    detail: "Live NFL Network games usually require a carrying TV or streaming bundle.",
+    href: "https://www.nfl.com/network/",
+    logo: outletLogos.nfl,
+  },
+];
 
 const knownMarkets: ViewerMarket[] = [
   {
@@ -186,6 +285,8 @@ const games: Game[] = [
         verifiedAt: verifiedStamp,
         confidence: "likely",
         note: "Video depends on preseason eligibility and location.",
+        href: "https://www.nfl.com/plus/",
+        ctaLabel: "Open NFL+",
       },
     ],
     local: [],
@@ -225,6 +326,8 @@ const games: Game[] = [
         verifiedAt: verifiedStamp,
         confidence: "confirmed",
         note: "Subscription path; local affiliate still checked separately.",
+        href: "https://www.espn.com/watch/",
+        ctaLabel: "Open ESPN",
       },
     ],
     local: [],
@@ -242,6 +345,8 @@ const games: Game[] = [
         verifiedAt: verifiedStamp,
         confidence: "likely",
         note: "Use when video is unavailable with current setup.",
+        href: "https://www.nfl.com/plus/",
+        ctaLabel: "Open NFL+",
       },
     ],
     changes: [
@@ -279,6 +384,8 @@ const games: Game[] = [
         verifiedAt: verifiedStamp,
         confidence: "confirmed",
         note: "Requires a bundle carrying NFL Network.",
+        href: "https://www.nfl.com/network/",
+        ctaLabel: "Open NFL Network",
       },
     ],
     local: [],
@@ -320,6 +427,8 @@ const games: Game[] = [
         verifiedAt: verifiedStamp,
         confidence: "pending",
         note: "Moderator review should attach affiliate call signs.",
+        href: "https://www.nfl.com/ways-to-watch",
+        ctaLabel: "Open guide",
       },
     ],
     changes: [
@@ -357,6 +466,8 @@ const games: Game[] = [
         verifiedAt: verifiedStamp,
         confidence: "confirmed",
         note: "Bundle login required.",
+        href: "https://www.nfl.com/network/",
+        ctaLabel: "Open NFL Network",
       },
     ],
     local: [],
@@ -396,6 +507,8 @@ const games: Game[] = [
         verifiedAt: verifiedStamp,
         confidence: "confirmed",
         note: "National feed remains available if subscribed.",
+        href: "https://www.espn.com/watch/",
+        ctaLabel: "Open ESPN",
       },
     ],
     local: [
@@ -412,6 +525,8 @@ const games: Game[] = [
         verifiedAt: verifiedStamp,
         confidence: "confirmed",
         note: "Free antenna path for ZIP 94533; provider channel number still belongs to the user's guide.",
+        href: "https://www.kcra.com/",
+        ctaLabel: "Open KCRA",
       },
     ],
     audio: [
@@ -428,6 +543,8 @@ const games: Game[] = [
         verifiedAt: verifiedStamp,
         confidence: "likely",
         note: "Use as a lawful fallback if video access fails.",
+        href: "https://www.therams.com/news/game-coverage/",
+        ctaLabel: "Open radio",
       },
       {
         id: "no-lar-nflplus-audio",
@@ -442,6 +559,8 @@ const games: Game[] = [
         verifiedAt: verifiedStamp,
         confidence: "likely",
         note: "Subscription audio path where eligible.",
+        href: "https://www.nfl.com/plus/",
+        ctaLabel: "Open NFL+",
       },
     ],
     changes: [
@@ -509,6 +628,8 @@ const games: Game[] = [
         verifiedAt: verifiedStamp,
         confidence: "confirmed",
         note: "Requires a live-TV bundle carrying NFL Network.",
+        href: "https://www.nfl.com/network/",
+        ctaLabel: "Open NFL Network",
       },
     ],
     local: [],
@@ -548,6 +669,8 @@ const games: Game[] = [
         verifiedAt: verifiedStamp,
         confidence: "confirmed",
         note: "Subscription stream.",
+        href: "https://www.espn.com/watch/",
+        ctaLabel: "Open ESPN",
       },
     ],
     local: [],
@@ -587,6 +710,8 @@ const games: Game[] = [
         verifiedAt: verifiedStamp,
         confidence: "confirmed",
         note: "Requires a live-TV bundle carrying NFL Network.",
+        href: "https://www.nfl.com/network/",
+        ctaLabel: "Open NFL Network",
       },
     ],
     local: [],
@@ -648,6 +773,11 @@ function logoForPath(path: WatchPath, game?: Game) {
   const haystack = `${path.label} ${path.network}`.toLowerCase();
   if (haystack.includes("espn")) return { src: outletLogos.espn, alt: "ESPN logo" };
   if (haystack.includes("nbc") || haystack.includes("kcra")) return { src: outletLogos.nbc, alt: "NBC logo" };
+  if (haystack.includes("peacock")) return { src: outletLogos.peacock, alt: "Peacock logo" };
+  if (haystack.includes("paramount")) return { src: outletLogos.paramountPlus, alt: "Paramount+ logo" };
+  if (haystack.includes("prime")) return { src: outletLogos.primeVideo, alt: "Prime Video logo" };
+  if (haystack.includes("netflix")) return { src: outletLogos.netflix, alt: "Netflix logo" };
+  if (haystack.includes("sunday ticket") || haystack.includes("youtube")) return { src: outletLogos.youtube, alt: "YouTube logo" };
   if (haystack.includes("nfl+") || haystack.includes("nfl plus")) return { src: outletLogos.nflPlus, alt: "NFL+ logo" };
   if (haystack.includes("nfl network")) return { src: outletLogos.nfl, alt: "NFL logo" };
   if (haystack.includes("cbs")) return { src: outletLogos.cbs, alt: "CBS logo" };
@@ -756,6 +886,8 @@ function localVerificationPath(game: Game, market: ViewerMarket): WatchPath {
     verifiedAt: new Date().toISOString(),
     confidence: "pending",
     note: `ZIP ${market.zip} resolves to ${market.city}. Exact local affiliate and game carriage still require verified DMA and EPG data.`,
+    href: "https://www.nfl.com/ways-to-watch",
+    ctaLabel: "Open NFL guide",
   };
 }
 
@@ -907,13 +1039,17 @@ export default function Home() {
   return (
     <main className="app-shell">
       <section className="command-center" aria-label="NFL Broadcast Finder">
+        <div className="premium-ribbon">Premium match finder</div>
         <div className="brand-lockup">
           <div className="brand-mark" aria-hidden="true">
             BF
           </div>
           <div>
             <p className="eyebrow">NFL Broadcast Finder</p>
-            <h1>Find the lawful way to watch or listen before kickoff.</h1>
+            <h1>Game day access, ranked by your ZIP and subscriptions.</h1>
+            <p className="hero-copy">
+              Search any U.S. ZIP, compare TV and streaming paths, and jump straight to the official watch page.
+            </p>
           </div>
         </div>
 
@@ -1100,6 +1236,11 @@ export default function Home() {
                   : "A verified video or audio path has not been attached yet."}
               </p>
             </div>
+            {primaryPath?.href ? (
+              <a className="watch-button" href={primaryPath.href} rel="noreferrer" target="_blank">
+                {primaryPath.ctaLabel ?? "Watch"}
+              </a>
+            ) : null}
             <span className={`confidence-pill ${primaryPath?.confidence ?? "unavailable"}`}>
               {primaryPath ? stateLabel(primaryPath.confidence) : "Unavailable"}
             </span>
@@ -1133,10 +1274,43 @@ export default function Home() {
                     </div>
                   </dl>
                   <p className="card-note">{path.note}</p>
+                  {path.href ? (
+                    <a className="card-action" href={path.href} rel="noreferrer" target="_blank">
+                      {path.ctaLabel ?? "Open watch page"}
+                    </a>
+                  ) : null}
                 </article>
               );
             })}
           </div>
+
+          <section className="service-hub" aria-label="Streaming and network services">
+            <div className="section-kicker">
+              <p className="eyebrow">Streaming Matrix</p>
+              <h3>More NFL networks and packages</h3>
+            </div>
+            <div className="service-grid">
+              {servicePackages.map((service) => {
+                const active =
+                  service.id in capabilities
+                    ? capabilities[service.id as CapabilityKey]
+                    : service.id === "nbc" || service.id === "cbs" || service.id === "fox";
+                return (
+                  <a className="service-card" href={service.href} key={service.id} rel="noreferrer" target="_blank">
+                    <span className="service-logo">
+                      <LogoImage src={service.logo} alt={`${service.label} logo`} />
+                    </span>
+                    <span>
+                      <strong>{service.label}</strong>
+                      <small>{service.window}</small>
+                    </span>
+                    <em>{active ? "In setup" : "Guide"}</em>
+                    <p>{service.detail}</p>
+                  </a>
+                );
+              })}
+            </div>
+          </section>
 
           <div className="detail-grid">
             <section className="ops-panel" aria-label="Change ledger">

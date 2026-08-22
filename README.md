@@ -21,6 +21,9 @@ real feed or operator review before production use.
   adapters plug in next.
 - Publicly hosted team and outlet logos to make teams, networks, and services
   easier to identify at a glance.
+- Direct links to official watch/service pages for each modeled outlet.
+- A streaming matrix for Peacock, Paramount+, Prime Video, Netflix, Sunday
+  Ticket, FOX One, ESPN, NFL Network, and local broadcast paths.
 
 ## Product Boundary
 
@@ -35,6 +38,10 @@ Team logos are loaded from ESPN's public team-logo CDN. Network and service
 marks are loaded from Wikimedia Commons or Simple Icons when available. These
 marks remain the property of their owners and should be reviewed for trademark,
 brand, and commercial-use requirements before a public launch.
+
+The app includes official links for known services, but a link does not mean the
+selected game is available on that service. Each game card still carries its own
+verified, likely, or pending availability state.
 
 ## Local Development
 
