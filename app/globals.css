@@ -232,7 +232,7 @@ h3 {
 
 .icon-button:hover,
 .download-button:hover,
-.toggle:hover,
+.setup-chip:hover,
 .game-row:hover {
   border-color: rgba(255, 255, 255, 0.38);
   background: rgba(255, 255, 255, 0.12);
@@ -323,7 +323,7 @@ h3 {
 
 .card-action {
   width: 100%;
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 .lookup-status {
@@ -410,39 +410,53 @@ dd {
   color: #fff;
 }
 
-.toggle-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+.setup-chip-row {
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
-.toggle {
-  display: flex;
-  min-height: 48px;
-  flex-direction: column;
-  justify-content: space-between;
+.setup-chip {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 7px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #090909;
   color: #fff;
-  padding: 8px;
+  padding: 0 9px;
   text-align: left;
 }
 
-.toggle span:first-child {
+.setup-chip span {
   font-size: 0.74rem;
-  font-weight: 850;
+  font-weight: 900;
+  white-space: nowrap;
 }
 
-.toggle span:last-child {
+.setup-chip small {
   color: var(--ink-soft);
   font-size: 0.7rem;
   font-weight: 900;
+  white-space: nowrap;
 }
 
-.toggle.is-on {
+.setup-chip.is-on {
   border-color: rgba(255, 197, 61, 0.76);
   background: rgba(255, 197, 61, 0.12);
+}
+
+.setup-chip.is-on small {
+  color: var(--gold);
+}
+
+.setup-chip.is-empty {
+  color: var(--ink-soft);
+}
+
+.more-chip {
+  border-style: dashed;
 }
 
 .audit-meter {
@@ -738,6 +752,29 @@ dd {
   object-fit: contain;
 }
 
+.text-logo {
+  display: inline-grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.text-logo.prime {
+  color: #7ed6ff;
+  font-size: 0.56rem;
+  text-transform: lowercase;
+}
+
+.text-logo.fox {
+  color: #fff;
+}
+
 .primary-icon.logo-tile {
   width: 50px;
   height: 50px;
@@ -806,7 +843,7 @@ dd {
 
 .path-card {
   display: flex;
-  min-height: 232px;
+  min-height: 180px;
   flex-direction: column;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -824,12 +861,57 @@ dd {
 
 .path-card > p:not(.card-note) {
   min-height: 18px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   color: var(--gold);
 }
 
-.path-card dl {
-  margin-bottom: 10px;
+.access-line {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 24px;
+  align-items: center;
+  border-radius: 999px;
+  background: var(--red-soft);
+  color: #ffaaa6;
+  padding: 0 9px;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.access-line.is-ready {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.path-detail {
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.path-detail summary,
+.info-disclosure > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.path-detail summary::-webkit-details-marker,
+.info-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.path-detail summary {
+  color: var(--ink-soft);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.path-detail[open] summary {
+  margin-bottom: 8px;
+  color: var(--gold);
+}
+
+.path-detail dl {
+  margin-bottom: 8px;
 }
 
 .path-card dl div {
@@ -848,16 +930,37 @@ dd {
 
 .section-kicker {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
+  margin-bottom: 0;
+}
+
+.section-kicker strong {
+  display: block;
+  margin: 0;
+  font-size: 1.2rem;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.section-kicker em {
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.info-disclosure[open] > summary {
   margin-bottom: 12px;
 }
 
-.section-kicker h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  text-transform: uppercase;
+.info-disclosure > .panel-title {
+  margin-bottom: 0;
+}
+
+.info-disclosure[open] > .panel-title {
+  margin-bottom: 12px;
 }
 
 .service-grid {
@@ -891,6 +994,14 @@ dd {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #151515;
+}
+
+.service-logo.prime {
+  background: #102538;
+}
+
+.service-logo.fox {
+  background: #142f66;
 }
 
 .service-logo img {
@@ -1075,9 +1186,12 @@ dd {
   }
 
   .path-grid,
-  .service-grid,
-  .toggle-grid {
+  .service-grid {
     grid-template-columns: 1fr;
+  }
+
+  .setup-chip {
+    flex: 1 1 140px;
   }
 
   .download-button,

@@ -146,10 +146,8 @@ const outletLogos = {
   nfl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/NFL_wordmark_logo_2008.svg",
   nflPlus: "https://commons.wikimedia.org/wiki/Special:Redirect/file/NFL%2B_logo.svg",
   cbs: "https://cdn.simpleicons.org/cbs/111111",
-  fox: "https://cdn.simpleicons.org/fox/111111",
   peacock: "https://cdn.simpleicons.org/peacock/ffffff",
   paramountPlus: "https://cdn.simpleicons.org/paramountplus/ffffff",
-  primeVideo: "https://cdn.simpleicons.org/primevideo/ffffff",
   netflix: "https://cdn.simpleicons.org/netflix/e50914",
   youtube: "https://cdn.simpleicons.org/youtube/ff0033",
 };
@@ -168,13 +166,17 @@ const initialCapabilities: Record<CapabilityKey, boolean> = {
   foxOne: false,
 };
 
+const capabilityKeys = Object.keys(initialCapabilities) as CapabilityKey[];
+
 const servicePackages: Array<{
   id: CapabilityKey | "abc" | "cbs" | "fox" | "nbc";
   label: string;
   window: string;
   detail: string;
   href: string;
-  logo: string;
+  logo?: string;
+  mark?: string;
+  tone?: "prime" | "fox";
 }> = [
   {
     id: "paramountPlus",
@@ -198,7 +200,8 @@ const servicePackages: Array<{
     window: "TNF",
     detail: "Home of many Thursday Night Football windows and select exclusives.",
     href: "https://www.amazon.com/salp/tnf-help",
-    logo: outletLogos.primeVideo,
+    mark: "prime",
+    tone: "prime",
   },
   {
     id: "netflix",
@@ -222,7 +225,8 @@ const servicePackages: Array<{
     window: "FOX local games",
     detail: "Used for local FOX NFL availability where eligible.",
     href: "https://www.nfl.com/ways-to-watch",
-    logo: outletLogos.fox,
+    mark: "FOX",
+    tone: "fox",
   },
   {
     id: "espnUnlimited",
@@ -1001,19 +1005,26 @@ function teamsForGame(game: Game) {
   };
 }
 
+type LogoDescriptor = {
+  alt: string;
+  src?: string;
+  text?: string;
+  tone?: "prime" | "fox";
+};
+
 function logoForPath(path: WatchPath, game?: Game) {
   const haystack = `${path.label} ${path.network}`.toLowerCase();
   if (haystack.includes("espn")) return { src: outletLogos.espn, alt: "ESPN logo" };
   if (haystack.includes("nbc") || haystack.includes("kcra")) return { src: outletLogos.nbc, alt: "NBC logo" };
   if (haystack.includes("peacock")) return { src: outletLogos.peacock, alt: "Peacock logo" };
   if (haystack.includes("paramount")) return { src: outletLogos.paramountPlus, alt: "Paramount+ logo" };
-  if (haystack.includes("prime")) return { src: outletLogos.primeVideo, alt: "Prime Video logo" };
+  if (haystack.includes("prime")) return { text: "prime", tone: "prime", alt: "Prime Video logo" };
   if (haystack.includes("netflix")) return { src: outletLogos.netflix, alt: "Netflix logo" };
   if (haystack.includes("sunday ticket") || haystack.includes("youtube")) return { src: outletLogos.youtube, alt: "YouTube logo" };
   if (haystack.includes("nfl+") || haystack.includes("nfl plus")) return { src: outletLogos.nflPlus, alt: "NFL+ logo" };
   if (haystack.includes("nfl network")) return { src: outletLogos.nfl, alt: "NFL logo" };
   if (haystack.includes("cbs")) return { src: outletLogos.cbs, alt: "CBS logo" };
-  if (haystack.includes("fox")) return { src: outletLogos.fox, alt: "FOX logo" };
+  if (haystack.includes("fox")) return { text: "FOX", tone: "fox", alt: "FOX logo" };
   if (game && haystack.includes("rams")) {
     const { home } = teamsForGame(game);
     return { src: teamLogo(home), alt: `${home.name} logo` };
@@ -1047,6 +1058,15 @@ function LogoImage({
   );
 }
 
+function LogoMark({ logo }: { logo: LogoDescriptor }) {
+  if (logo.src) return <LogoImage src={logo.src} alt={logo.alt} />;
+  return (
+    <span className={`text-logo ${logo.tone ?? ""}`} aria-label={logo.alt} role="img">
+      {logo.text}
+    </span>
+  );
+}
+
 function TeamPair({ game, size = "compact" }: { game: Game; size?: "compact" | "large" }) {
   const { away, home } = teamsForGame(game);
   return (
@@ -1074,7 +1094,7 @@ function OutletLogo({
 
   return (
     <div className={`logo-tile ${className}`}>
-      {logo ? <LogoImage src={logo.src} alt={logo.alt} /> : path ? mediumIcon(path.medium) : <AlertTriangle aria-hidden="true" />}
+      {logo ? <LogoMark logo={logo} /> : path ? mediumIcon(path.medium) : <AlertTriangle aria-hidden="true" />}
     </div>
   );
 }
@@ -1205,6 +1225,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState(todayDateKey);
   const [selectedId, setSelectedId] = useState("pit-car-2026-pre");
+  const [showAllSetup, setShowAllSetup] = useState(false);
 
   const availableDates = useMemo(
     () => Array.from(new Set(games.map((game) => localDateKey(game.kickoffUtc)))).sort(),
@@ -1235,6 +1256,22 @@ export default function Home() {
   const confirmedCount = dateGames.filter((game) => game.status === "confirmed").length;
   const pendingCount = dateGames.filter((game) => game.status === "pending").length;
   const coveragePercent = dateGames.length ? Math.round((confirmedCount / dateGames.length) * 100) : 0;
+  const setupAvailability = useMemo(
+    () =>
+      capabilityKeys.reduce(
+        (totals, key) => {
+          totals[key] = dateGames.filter((game) =>
+            pathsForGame(game, market).some((path) => path.requirement === key),
+          ).length;
+          return totals;
+        },
+        {} as Record<CapabilityKey, number>,
+      ),
+    [dateGames, market],
+  );
+  const visibleSetupKeys = showAllSetup
+    ? capabilityKeys
+    : capabilityKeys.filter((key) => setupAvailability[key] > 0);
 
   function chooseDate(dateKey: string) {
     const firstGame = games.find((game) => localDateKey(game.kickoffUtc) === dateKey);
@@ -1388,22 +1425,35 @@ export default function Home() {
         <div className="setup-panel">
           <div className="panel-title">
             <SlidersHorizontal aria-hidden="true" />
-            <span>Watch Setup</span>
+            <span>Watch Setup Filters</span>
           </div>
-          <div className="toggle-grid">
-            {(Object.keys(capabilities) as CapabilityKey[]).map((key) => (
+          <div className="setup-chip-row" aria-label="Watch setup filters">
+            {visibleSetupKeys.map((key) => {
+              const availableCount = setupAvailability[key];
+              return (
               <button
                 key={key}
                 type="button"
-                className={`toggle ${capabilities[key] ? "is-on" : ""}`}
+                className={`setup-chip ${capabilities[key] ? "is-on" : ""} ${availableCount === 0 ? "is-empty" : ""}`}
                 onClick={() => toggleCapability(key)}
                 aria-pressed={capabilities[key]}
               >
                 <span>{capabilityLabels[key]}</span>
-                <span>{capabilities[key] ? "On" : "Off"}</span>
+                <small>{availableCount > 0 ? `${availableCount} game${availableCount === 1 ? "" : "s"}` : "No games"}</small>
               </button>
-            ))}
+              );
+            })}
+            <button
+              className="setup-chip more-chip"
+              type="button"
+              onClick={() => setShowAllSetup((current) => !current)}
+              aria-expanded={showAllSetup}
+            >
+              <span>{showAllSetup ? "Less" : "More filters"}</span>
+              <small>{showAllSetup ? "Hide unused" : "Add others"}</small>
+            </button>
           </div>
+          <p className="small-note">Selected chips rank matching watch paths higher.</p>
         </div>
 
         <div className="coverage-panel">
@@ -1565,36 +1615,41 @@ export default function Home() {
                   </div>
                   <h3>{path.label}</h3>
                   <p>{path.network}</p>
-                  <dl>
-                    <div>
-                      <dt>Access</dt>
-                      <dd>{owned ? "Available with setup" : `Needs ${capabilityLabels[path.requirement as CapabilityKey] ?? "review"}`}</dd>
-                    </div>
-                    <div>
-                      <dt>Territory</dt>
-                      <dd>{path.territory}</dd>
-                    </div>
-                    <div>
-                      <dt>Last verified</dt>
-                      <dd>{formatStamp(path.verifiedAt)}</dd>
-                    </div>
-                  </dl>
-                  <p className="card-note">{path.note}</p>
+                  <span className={`access-line ${owned ? "is-ready" : ""}`}>
+                    {owned ? "Available with setup" : `Needs ${capabilityLabels[path.requirement as CapabilityKey] ?? "review"}`}
+                  </span>
                   {path.href ? (
                     <a className="card-action" href={path.href} rel="noreferrer" target="_blank">
                       {path.ctaLabel ?? "Open watch page"}
                     </a>
                   ) : null}
+                  <details className="path-detail">
+                    <summary>Details</summary>
+                    <dl>
+                      <div>
+                        <dt>Territory</dt>
+                        <dd>{path.territory}</dd>
+                      </div>
+                      <div>
+                        <dt>Last verified</dt>
+                        <dd>{formatStamp(path.verifiedAt)}</dd>
+                      </div>
+                    </dl>
+                    <p className="card-note">{path.note}</p>
+                  </details>
                 </article>
               );
             })}
           </div>
 
-          <section className="service-hub" aria-label="Streaming and network services">
-            <div className="section-kicker">
-              <p className="eyebrow">Streaming Matrix</p>
-              <h3>More NFL networks and packages</h3>
-            </div>
+          <details className="service-hub info-disclosure" aria-label="Streaming and network services">
+            <summary className="section-kicker">
+              <span>
+                <span className="eyebrow">More Info</span>
+                <strong>Streaming Matrix</strong>
+              </span>
+              <em>Network and package guide</em>
+            </summary>
             <div className="service-grid">
               {servicePackages.map((service) => {
                 const active =
@@ -1603,8 +1658,14 @@ export default function Home() {
                     : service.id === "nbc" || service.id === "cbs" || service.id === "fox";
                 return (
                   <a className="service-card" href={service.href} key={service.id} rel="noreferrer" target="_blank">
-                    <span className="service-logo">
-                      <LogoImage src={service.logo} alt={`${service.label} logo`} />
+                    <span className={`service-logo ${service.tone ?? ""}`}>
+                      {service.logo ? (
+                        <LogoImage src={service.logo} alt={`${service.label} logo`} />
+                      ) : (
+                        <span className={`text-logo ${service.tone ?? ""}`} aria-label={`${service.label} logo`} role="img">
+                          {service.mark}
+                        </span>
+                      )}
                     </span>
                     <span>
                       <strong>{service.label}</strong>
@@ -1616,14 +1677,14 @@ export default function Home() {
                 );
               })}
             </div>
-          </section>
+          </details>
 
           <div className="detail-grid">
-            <section className="ops-panel" aria-label="Change ledger">
-              <div className="panel-title">
+            <details className="ops-panel info-disclosure" aria-label="Change ledger">
+              <summary className="panel-title">
                 <Clock3 aria-hidden="true" />
                 <span>Change Ledger</span>
-              </div>
+              </summary>
               <div className="timeline">
                 {selectedGame.changes.map((change) => (
                   <article key={`${change.at}-${change.title}`}>
@@ -1636,13 +1697,13 @@ export default function Home() {
                   </article>
                 ))}
               </div>
-            </section>
+            </details>
 
-            <section className="ops-panel" aria-label="Source health">
-              <div className="panel-title">
+            <details className="ops-panel info-disclosure" aria-label="Source health">
+              <summary className="panel-title">
                 <AlertTriangle aria-hidden="true" />
                 <span>Verification Queue</span>
-              </div>
+              </summary>
               <ul className="queue-list">
                 <li>
                   <strong>Schedule feed</strong>
@@ -1657,7 +1718,7 @@ export default function Home() {
                   <span>Calendar export active; push/email adapters pending</span>
                 </li>
               </ul>
-            </section>
+            </details>
           </div>
         </section>
       </section>
