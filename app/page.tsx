@@ -118,15 +118,25 @@ const teamMeta: Record<string, TeamMeta> = {
   "Dallas Cowboys": { name: "Dallas Cowboys", slug: "dal", abbr: "DAL" },
   "Detroit Lions": { name: "Detroit Lions", slug: "det", abbr: "DET" },
   "Indianapolis Colts": { name: "Indianapolis Colts", slug: "ind", abbr: "IND" },
+  "Jacksonville Jaguars": { name: "Jacksonville Jaguars", slug: "jax", abbr: "JAX" },
   "Kansas City Chiefs": { name: "Kansas City Chiefs", slug: "kc", abbr: "KC" },
+  "Las Vegas Raiders": { name: "Las Vegas Raiders", slug: "lv", abbr: "LV" },
+  "Los Angeles Chargers": { name: "Los Angeles Chargers", slug: "lac", abbr: "LAC" },
   "Los Angeles Rams": { name: "Los Angeles Rams", slug: "lar", abbr: "LAR" },
   "Miami Dolphins": { name: "Miami Dolphins", slug: "mia", abbr: "MIA" },
   "Minnesota Vikings": { name: "Minnesota Vikings", slug: "min", abbr: "MIN" },
   "New England Patriots": { name: "New England Patriots", slug: "ne", abbr: "NE" },
   "New Orleans Saints": { name: "New Orleans Saints", slug: "no", abbr: "NO" },
   "New York Giants": { name: "New York Giants", slug: "nyg", abbr: "NYG" },
+  "New York Jets": { name: "New York Jets", slug: "nyj", abbr: "NYJ" },
   "Philadelphia Eagles": { name: "Philadelphia Eagles", slug: "phi", abbr: "PHI" },
+  "Pittsburgh Steelers": { name: "Pittsburgh Steelers", slug: "pit", abbr: "PIT" },
+  "San Francisco 49ers": { name: "San Francisco 49ers", slug: "sf", abbr: "SF" },
+  "Seattle Seahawks": { name: "Seattle Seahawks", slug: "sea", abbr: "SEA" },
   "Tampa Bay Buccaneers": { name: "Tampa Bay Buccaneers", slug: "tb", abbr: "TB" },
+  "Tennessee Titans": { name: "Tennessee Titans", slug: "ten", abbr: "TEN" },
+  "Houston Texans": { name: "Houston Texans", slug: "hou", abbr: "HOU" },
+  "Carolina Panthers": { name: "Carolina Panthers", slug: "car", abbr: "CAR" },
   "Washington Commanders": { name: "Washington Commanders", slug: "wsh", abbr: "WSH" },
 };
 
@@ -725,6 +735,228 @@ const games: Game[] = [
       },
     ],
   },
+  {
+    id: "pit-car-2026-pre",
+    uid: "nflbf-pit-car-2026-preseason",
+    week: "Preseason",
+    matchup: "Pittsburgh Steelers at Carolina Panthers",
+    shortName: "Steelers at Panthers",
+    kickoffUtc: "2026-08-23T17:00:00.000Z",
+    venue: "Bank of America Stadium, Charlotte, NC",
+    venueTz: "America/New_York",
+    status: "likely",
+    flexEligible: false,
+    market: "Local affiliate workflow",
+    national: [
+      {
+        id: "pit-car-nflplus",
+        label: "NFL+",
+        network: "NFL+",
+        medium: "streaming",
+        territory: "US preseason eligibility",
+        entitlement: "subscription",
+        requirement: "nflPlusAudio",
+        devices: ["phone", "tablet", "browser"],
+        source: "Modeled upcoming preseason row",
+        verifiedAt: verifiedStamp,
+        confidence: "likely",
+        note: "Preseason video eligibility depends on location and league rules.",
+        href: "https://www.nfl.com/plus/",
+        ctaLabel: "Open NFL+",
+      },
+    ],
+    local: [],
+    audio: [
+      {
+        id: "pit-car-audio",
+        label: "NFL+ audio",
+        network: "NFL+",
+        medium: "audio_app",
+        territory: "US",
+        entitlement: "subscription",
+        requirement: "nflPlusAudio",
+        devices: ["phone", "tablet", "browser"],
+        source: "Audio fallback seed",
+        verifiedAt: verifiedStamp,
+        confidence: "likely",
+        note: "Fallback audio path where eligible.",
+        href: "https://www.nfl.com/plus/",
+        ctaLabel: "Open NFL+",
+      },
+    ],
+    changes: [
+      {
+        at: verifiedStamp,
+        title: "Upcoming row added",
+        detail: "Added so date selection can move beyond the initial slate.",
+        source: "Modeled schedule row",
+      },
+    ],
+  },
+  {
+    id: "sea-ten-2026-pre",
+    uid: "nflbf-sea-ten-2026-preseason",
+    week: "Preseason",
+    matchup: "Seattle Seahawks at Tennessee Titans",
+    shortName: "Seahawks at Titans",
+    kickoffUtc: "2026-08-27T00:00:00.000Z",
+    venue: "Nissan Stadium, Nashville, TN",
+    venueTz: "America/Chicago",
+    status: "likely",
+    flexEligible: false,
+    market: "National and local review",
+    national: [
+      {
+        id: "sea-ten-nfln",
+        label: "NFL Network",
+        network: "NFL Network",
+        medium: "cable",
+        territory: "US national when scheduled",
+        entitlement: "provider_login",
+        requirement: "nflNetwork",
+        devices: ["tv", "live-TV app"],
+        source: "Modeled upcoming preseason row",
+        verifiedAt: verifiedStamp,
+        confidence: "likely",
+        note: "Requires a bundle carrying NFL Network if selected for the national window.",
+        href: "https://www.nfl.com/network/",
+        ctaLabel: "Open NFL Network",
+      },
+    ],
+    local: [],
+    audio: [],
+    changes: [
+      {
+        at: verifiedStamp,
+        title: "Future date available",
+        detail: "This matchup demonstrates picking an upcoming date.",
+        source: "Modeled schedule row",
+      },
+    ],
+  },
+  {
+    id: "lv-lac-2026-pre",
+    uid: "nflbf-lv-lac-2026-preseason",
+    week: "Preseason",
+    matchup: "Las Vegas Raiders at Los Angeles Chargers",
+    shortName: "Raiders at Chargers",
+    kickoffUtc: "2026-08-28T02:00:00.000Z",
+    venue: "SoFi Stadium, Inglewood, CA",
+    venueTz: "America/Los_Angeles",
+    status: "pending",
+    flexEligible: false,
+    market: "West Coast local review",
+    national: [],
+    local: [],
+    audio: [
+      {
+        id: "lv-lac-audio",
+        label: "Team radio networks",
+        network: "Team radio",
+        medium: "radio",
+        territory: "Team markets",
+        entitlement: "free",
+        requirement: "none",
+        devices: ["radio", "browser"],
+        source: "Team radio validation pending",
+        verifiedAt: verifiedStamp,
+        confidence: "pending",
+        note: "Affiliate call signs should be attached by market.",
+        href: "https://www.nfl.com/ways-to-watch",
+        ctaLabel: "Open guide",
+      },
+    ],
+    changes: [
+      {
+        at: verifiedStamp,
+        title: "Pending outlet review",
+        detail: "Local and streaming availability still need source confirmation.",
+        source: "Modeled schedule row",
+      },
+    ],
+  },
+  {
+    id: "nyj-jax-2026-pre",
+    uid: "nflbf-nyj-jax-2026-preseason",
+    week: "Preseason",
+    matchup: "New York Jets at Jacksonville Jaguars",
+    shortName: "Jets at Jaguars",
+    kickoffUtc: "2026-08-29T23:00:00.000Z",
+    venue: "EverBank Stadium, Jacksonville, FL",
+    venueTz: "America/New_York",
+    status: "likely",
+    flexEligible: false,
+    market: "Streaming/local review",
+    national: [
+      {
+        id: "nyj-jax-nflplus",
+        label: "NFL+",
+        network: "NFL+",
+        medium: "streaming",
+        territory: "US preseason eligibility",
+        entitlement: "subscription",
+        requirement: "nflPlusAudio",
+        devices: ["phone", "tablet", "browser"],
+        source: "Modeled upcoming preseason row",
+        verifiedAt: verifiedStamp,
+        confidence: "likely",
+        note: "Use exact game availability from NFL+ before kickoff.",
+        href: "https://www.nfl.com/plus/",
+        ctaLabel: "Open NFL+",
+      },
+    ],
+    local: [],
+    audio: [],
+    changes: [
+      {
+        at: verifiedStamp,
+        title: "Future Saturday row",
+        detail: "Added to support upcoming-day browsing.",
+        source: "Modeled schedule row",
+      },
+    ],
+  },
+  {
+    id: "sf-hou-2026-week1",
+    uid: "nflbf-sf-hou-2026-week1",
+    week: "Week 1",
+    matchup: "San Francisco 49ers at Houston Texans",
+    shortName: "49ers at Texans",
+    kickoffUtc: "2026-09-13T20:25:00.000Z",
+    venue: "NRG Stadium, Houston, TX",
+    venueTz: "America/Chicago",
+    status: "likely",
+    flexEligible: true,
+    market: "Sunday afternoon window",
+    national: [
+      {
+        id: "sf-hou-sunday-ticket",
+        label: "Sunday Ticket",
+        network: "YouTube Sunday Ticket",
+        medium: "streaming",
+        territory: "Out-of-market Sunday afternoon",
+        entitlement: "subscription",
+        requirement: "sundayTicket",
+        devices: ["tv app", "browser", "phone"],
+        source: "Regular-season availability model",
+        verifiedAt: verifiedStamp,
+        confidence: "likely",
+        note: "Out-of-market rules and local blackouts still apply.",
+        href: "https://tv.youtube.com/learn/nflsundayticket/",
+        ctaLabel: "Open Sunday Ticket",
+      },
+    ],
+    local: [],
+    audio: [],
+    changes: [
+      {
+        at: verifiedStamp,
+        title: "Regular-season sample added",
+        detail: "Shows how date selection works beyond preseason.",
+        source: "Modeled schedule row",
+      },
+    ],
+  },
 ];
 
 function formatTime(value: string, options?: Intl.DateTimeFormatOptions) {
@@ -942,33 +1174,73 @@ function createIcs(game: Game, primaryPath: WatchPath | undefined) {
   ].join("\r\n");
 }
 
+function localDateKey(value: string | Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+  }).formatToParts(typeof value === "string" ? new Date(value) : value);
+  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${lookup.year}-${lookup.month}-${lookup.day}`;
+}
+
+function todayDateKey() {
+  return localDateKey(new Date());
+}
+
+function dateLabel(dateKey: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    day: "numeric",
+    month: "short",
+    weekday: "short",
+  }).format(new Date(`${dateKey}T12:00:00`));
+}
+
 export default function Home() {
   const [capabilities, setCapabilities] = useState(initialCapabilities);
   const [zipInput, setZipInput] = useState("94533");
   const [market, setMarket] = useState<ViewerMarket>(knownMarkets[0]);
   const [zipStatus, setZipStatus] = useState("Verified local market loaded.");
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState("no-lar-2026-pre");
+  const [selectedDate, setSelectedDate] = useState(todayDateKey);
+  const [selectedId, setSelectedId] = useState("pit-car-2026-pre");
+
+  const availableDates = useMemo(
+    () => Array.from(new Set(games.map((game) => localDateKey(game.kickoffUtc)))).sort(),
+    [],
+  );
+
+  const dateGames = useMemo(
+    () => games.filter((game) => localDateKey(game.kickoffUtc) === selectedDate),
+    [selectedDate],
+  );
 
   const filteredGames = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    if (!normalized) return games;
-    return games.filter((game) =>
+    if (!normalized) return dateGames;
+    return dateGames.filter((game) =>
       [game.matchup, game.venue, game.market].some((value) =>
         value.toLowerCase().includes(normalized),
       ),
     );
-  }, [query]);
+  }, [dateGames, query]);
 
   const selectedGame =
     filteredGames.find((game) => game.id === selectedId) ??
-    games.find((game) => game.id === selectedId) ??
+    dateGames[0] ??
     games[0];
   const selectedPaths = rankedPaths(selectedGame, capabilities, market);
   const primaryPath = selectedPaths[0];
-  const confirmedCount = games.filter((game) => game.status === "confirmed").length;
-  const pendingCount = games.filter((game) => game.status === "pending").length;
-  const coveragePercent = Math.round((confirmedCount / games.length) * 100);
+  const confirmedCount = dateGames.filter((game) => game.status === "confirmed").length;
+  const pendingCount = dateGames.filter((game) => game.status === "pending").length;
+  const coveragePercent = dateGames.length ? Math.round((confirmedCount / dateGames.length) * 100) : 0;
+
+  function chooseDate(dateKey: string) {
+    const firstGame = games.find((game) => localDateKey(game.kickoffUtc) === dateKey);
+    setSelectedDate(dateKey);
+    if (firstGame) setSelectedId(firstGame.id);
+  }
 
   function toggleCapability(key: CapabilityKey) {
     setCapabilities((current) => ({ ...current, [key]: !current[key] }));
@@ -1136,6 +1408,34 @@ export default function Home() {
 
         <div className="coverage-panel">
           <div className="panel-title">
+            <Calendar aria-hidden="true" />
+            <span>Game Date</span>
+          </div>
+          <label className="date-field" htmlFor="game-date">
+            <span>{dateLabel(selectedDate)}</span>
+            <input
+              id="game-date"
+              type="date"
+              value={selectedDate}
+              onChange={(event) => chooseDate(event.target.value || todayDateKey())}
+            />
+          </label>
+          <div className="date-strip" aria-label="Available game dates">
+            {availableDates.map((date) => (
+              <button
+                className={selectedDate === date ? "is-selected" : ""}
+                key={date}
+                type="button"
+                onClick={() => chooseDate(date)}
+              >
+                {dateLabel(date)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="coverage-panel">
+          <div className="panel-title">
             <ShieldCheck aria-hidden="true" />
             <span>Coverage Audit</span>
           </div>
@@ -1146,7 +1446,7 @@ export default function Home() {
             <strong>{coveragePercent}%</strong>
             <span>{confirmedCount} confirmed, {pendingCount} pending</span>
           </div>
-          <p className="small-note">Demo ledger seeded from the attached build reference, not live league feeds.</p>
+          <p className="small-note">{dateGames.length} modeled games on {dateLabel(selectedDate)}.</p>
         </div>
       </section>
 
@@ -1155,7 +1455,7 @@ export default function Home() {
           <div className="rail-header">
             <div>
               <p className="eyebrow">Canonical Ledger</p>
-              <h2>Saturday Slate</h2>
+              <h2>{dateLabel(selectedDate)} Slate</h2>
             </div>
             <span>{filteredGames.length}</span>
           </div>
@@ -1197,6 +1497,12 @@ export default function Home() {
                 </button>
               );
             })}
+            {filteredGames.length === 0 ? (
+              <div className="empty-slate">
+                <strong>No modeled games</strong>
+                <span>Pick another date or clear search.</span>
+              </div>
+            ) : null}
           </div>
         </aside>
 

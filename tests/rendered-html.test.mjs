@@ -35,15 +35,15 @@ test("server-renders the NFL Broadcast Finder shell", async () => {
   assert.match(html, /Enter any ZIP/);
   assert.match(html, /Verified local market loaded\./);
   assert.match(html, /Watch Setup/);
-  assert.match(html, /Saints at Rams/);
-  assert.match(html, /KCRA 3/);
-  assert.match(html, /New Orleans Saints logo/);
-  assert.match(html, /Los Angeles Rams logo/);
-  assert.match(html, /NBC logo/);
+  assert.match(html, /Game Date/);
+  assert.match(html, /Steelers at Panthers/);
+  assert.match(html, /Pittsburgh Steelers logo/);
+  assert.match(html, /Carolina Panthers logo/);
+  assert.match(html, /NFL\+ audio/);
   assert.match(html, /Streaming Matrix/);
   assert.match(html, /Peacock/);
   assert.match(html, /Paramount\+/);
-  assert.match(html, /Open KCRA/);
+  assert.match(html, /Open NFL\+/);
   assert.doesNotMatch(html, /Your site is taking shape|react-loading-skeleton|codex-preview/);
 });
 

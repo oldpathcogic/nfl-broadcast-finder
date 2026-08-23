@@ -12,6 +12,8 @@ real feed or operator review before production use.
 - Canonical game ledger for the sample preseason slate.
 - Searchable viewer context for any 5-digit U.S. ZIP code, with verified
   sample markets and transparent fallback states for unverified markets.
+- Date selection that defaults to the current day and can jump to modeled
+  upcoming game days.
 - Watch setup toggles for antenna, live-TV bundle, ESPN Unlimited, NFL Network,
   and NFL+ audio.
 - Ranked watch/listen paths based on the viewer's current setup.
