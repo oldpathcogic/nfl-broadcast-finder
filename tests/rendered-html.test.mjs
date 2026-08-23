@@ -47,6 +47,17 @@ test("server-renders the NFL Broadcast Finder shell", async () => {
   assert.doesNotMatch(html, /Your site is taking shape|react-loading-skeleton|codex-preview/);
 });
 
+test("includes tested ZIP market fallbacks", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(page, /Saint Joseph, MO/);
+  assert.match(page, /Kansas City-St\. Joseph/);
+  assert.match(page, /Vallejo, CA/);
+  assert.match(page, /Beverly Hills, CA/);
+  assert.match(page, /Estimated local TV market/);
+  assert.doesNotMatch(page, /DMA lookup needed|Affiliate verification needed/);
+});
+
 test("documents the product boundary and next build steps", async () => {
   const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
 

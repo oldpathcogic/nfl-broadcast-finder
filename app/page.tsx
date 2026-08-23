@@ -90,7 +90,7 @@ type ViewerMarket = {
   city: string;
   dma: string;
   localAffiliate: string;
-  verification: "confirmed" | "lookup" | "unverified";
+  verification: "confirmed" | "estimated" | "lookup" | "unverified";
 };
 
 const capabilityLabels: Record<CapabilityKey, string> = {
@@ -267,6 +267,61 @@ const knownMarkets: ViewerMarket[] = [
     dma: "Los Angeles",
     localAffiliate: "KNBC 4",
     verification: "confirmed",
+  },
+  {
+    zip: "90210",
+    city: "Beverly Hills, CA",
+    dma: "Los Angeles",
+    localAffiliate: "Los Angeles local affiliates",
+    verification: "estimated",
+  },
+  {
+    zip: "94589",
+    city: "Vallejo, CA",
+    dma: "San Francisco-Oakland-San Jose",
+    localAffiliate: "Bay Area local affiliates",
+    verification: "estimated",
+  },
+  {
+    zip: "64501",
+    city: "Saint Joseph, MO",
+    dma: "Kansas City-St. Joseph",
+    localAffiliate: "Kansas City/St. Joseph local affiliates",
+    verification: "estimated",
+  },
+];
+
+const inferredMarkets: Array<{
+  label: string;
+  matches: (zip: string, city: string, state: string) => boolean;
+  market: Omit<ViewerMarket, "zip" | "city">;
+}> = [
+  {
+    label: "Los Angeles",
+    matches: (zip, _city, state) => state === "CA" && /^(900|901|902|903|904|905|906|907|908|910|911|912|913|914|915|916)/.test(zip),
+    market: {
+      dma: "Los Angeles",
+      localAffiliate: "Los Angeles local affiliates",
+      verification: "estimated",
+    },
+  },
+  {
+    label: "Bay Area",
+    matches: (zip, _city, state) => state === "CA" && /^(940|941|943|944|9458|9459|946|947|948|949|950|951)/.test(zip),
+    market: {
+      dma: "San Francisco-Oakland-San Jose",
+      localAffiliate: "Bay Area local affiliates",
+      verification: "estimated",
+    },
+  },
+  {
+    label: "Kansas City-St. Joseph",
+    matches: (zip, _city, state) => state === "MO" && /^(640|641|644|645)/.test(zip),
+    market: {
+      dma: "Kansas City-St. Joseph",
+      localAffiliate: "Kansas City/St. Joseph local affiliates",
+      verification: "estimated",
+    },
   },
 ];
 
@@ -1127,17 +1182,17 @@ function pathScore(path: WatchPath, capabilities: Record<CapabilityKey, boolean>
 function localVerificationPath(game: Game, market: ViewerMarket): WatchPath {
   return {
     id: `${game.id}-${market.zip}-local-review`,
-    label: "Local station check",
-    network: "ZIP-specific local TV",
+    label: "Local broadcast check",
+    network: "Local TV coverage",
     medium: "ota_tv",
     territory: market.dma,
     entitlement: "free",
     requirement: "none",
     devices: ["antenna", "live-TV bundle"],
-    source: "ZIP lookup; DMA and EPG verification pending",
+    source: "ZIP lookup; local listing confirmation pending",
     verifiedAt: new Date().toISOString(),
     confidence: "pending",
-    note: `ZIP ${market.zip} resolves to ${market.city}. Exact local affiliate and game carriage still require verified DMA and EPG data.`,
+    note: `ZIP ${market.zip} resolves to ${market.city}. Use your provider guide to confirm the exact local channel for this game.`,
     href: "https://www.nfl.com/ways-to-watch",
     ctaLabel: "Open NFL guide",
   };
@@ -1215,6 +1270,32 @@ function dateLabel(dateKey: string) {
     month: "short",
     weekday: "short",
   }).format(new Date(`${dateKey}T12:00:00`));
+}
+
+function confidenceLabel(market: ViewerMarket) {
+  if (market.verification === "confirmed") return "Verified sample market";
+  if (market.verification === "estimated") return "Estimated local TV market";
+  if (market.verification === "lookup") return "Location found; local TV market pending";
+  return "ZIP accepted; local TV market pending";
+}
+
+function fallbackMarket(zip: string, city: string, state: string): ViewerMarket {
+  const inferred = inferredMarkets.find((item) => item.matches(zip, city, state));
+  if (inferred) {
+    return {
+      zip,
+      city: `${city}, ${state}`,
+      ...inferred.market,
+    };
+  }
+
+  return {
+    zip,
+    city: `${city}, ${state}`,
+    dma: "Local TV market pending",
+    localAffiliate: "Affiliate confirmation pending",
+    verification: "lookup",
+  };
 }
 
 export default function Home() {
@@ -1296,7 +1377,11 @@ export default function Home() {
     const knownMarket = knownMarkets.find((item) => item.zip === normalizedZip);
     if (knownMarket) {
       setMarket(knownMarket);
-      setZipStatus("Verified sample market loaded.");
+      setZipStatus(
+        knownMarket.verification === "confirmed"
+          ? "Verified sample market loaded."
+          : "ZIP found. Local TV market estimated; verify against your provider guide.",
+      );
       return;
     }
 
@@ -1314,23 +1399,22 @@ export default function Home() {
       const place = payload.places?.[0];
       const city = place?.["place name"] ?? "Unknown city";
       const state = place?.["state abbreviation"] ?? "US";
-      setMarket({
-        zip: normalizedZip,
-        city: `${city}, ${state}`,
-        dma: "DMA lookup needed",
-        localAffiliate: "Affiliate verification needed",
-        verification: "lookup",
-      });
-      setZipStatus("ZIP found. Exact TV market still needs verified DMA data.");
+      const resolvedMarket = fallbackMarket(normalizedZip, city, state);
+      setMarket(resolvedMarket);
+      setZipStatus(
+        resolvedMarket.verification === "estimated"
+          ? "ZIP found. Local TV market estimated; verify against your provider guide."
+          : "ZIP found. Local TV market coverage is pending confirmation.",
+      );
     } catch {
       setMarket({
         zip: normalizedZip,
         city: `ZIP ${normalizedZip}`,
-        dma: "DMA lookup needed",
-        localAffiliate: "Affiliate verification needed",
+        dma: "Local TV market pending",
+        localAffiliate: "Affiliate confirmation pending",
         verification: "unverified",
       });
-      setZipStatus("ZIP saved, but the public place lookup did not respond.");
+      setZipStatus("ZIP accepted. City and local TV market confirmation are pending.");
     }
   }
 
@@ -1413,7 +1497,7 @@ export default function Home() {
             </div>
             <div>
               <dt>Confidence</dt>
-              <dd>{market.verification === "confirmed" ? "Verified sample market" : "ZIP resolved, broadcast market pending"}</dd>
+              <dd>{confidenceLabel(market)}</dd>
             </div>
             <div>
               <dt>Provider status</dt>

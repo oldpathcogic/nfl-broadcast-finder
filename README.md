@@ -14,6 +14,8 @@ real feed or operator review before production use.
   sample markets and transparent fallback states for unverified markets.
 - Date selection that defaults to the current day and can jump to modeled
   upcoming game days.
+- Cleaner ZIP fallback handling for searched ZIPs where city/state is known but
+  local TV market data still needs confirmation.
 - Watch setup toggles for antenna, live-TV bundle, ESPN Unlimited, NFL Network,
   and NFL+ audio.
 - Ranked watch/listen paths based on the viewer's current setup.
