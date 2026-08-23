@@ -34,6 +34,8 @@ test("server-renders the NFL Broadcast Finder shell", async () => {
   assert.match(html, /Viewer Context/);
   assert.match(html, /Enter any ZIP/);
   assert.match(html, /Verified local market loaded\./);
+  assert.match(html, /Match confidence/);
+  assert.match(html, /Market details/);
   assert.match(html, /Watch Setup/);
   assert.match(html, /Game Date/);
   assert.match(html, /Steelers at Panthers/);
@@ -54,8 +56,9 @@ test("includes tested ZIP market fallbacks", async () => {
   assert.match(page, /Kansas City-St\. Joseph/);
   assert.match(page, /Vallejo, CA/);
   assert.match(page, /Beverly Hills, CA/);
-  assert.match(page, /Estimated local TV market/);
-  assert.doesNotMatch(page, /DMA lookup needed|Affiliate verification needed/);
+  assert.match(page, /Needs provider confirmation/);
+  assert.match(page, /ZIP found\. Local TV market estimated\./);
+  assert.doesNotMatch(page, /DMA lookup needed|Affiliate verification needed|broadcast market pending|coverage is pending/);
 });
 
 test("documents the product boundary and next build steps", async () => {

@@ -11,11 +11,12 @@ real feed or operator review before production use.
 
 - Canonical game ledger for the sample preseason slate.
 - Searchable viewer context for any 5-digit U.S. ZIP code, with verified
-  sample markets and transparent fallback states for unverified markets.
+  sample markets, estimated markets, and clear "Needs provider confirmation"
+  states for ZIPs that need exact local-channel confirmation.
 - Date selection that defaults to the current day and can jump to modeled
   upcoming game days.
-- Cleaner ZIP fallback handling for searched ZIPs where city/state is known but
-  local TV market data still needs confirmation.
+- Cleaner ZIP fallback handling that keeps affiliate and provider-guide notes
+  behind expandable market details instead of crowding the main screen.
 - Watch setup toggles for antenna, live-TV bundle, ESPN Unlimited, NFL Network,
   and NFL+ audio.
 - Ranked watch/listen paths based on the viewer's current setup.

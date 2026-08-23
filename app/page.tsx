@@ -1182,17 +1182,17 @@ function pathScore(path: WatchPath, capabilities: Record<CapabilityKey, boolean>
 function localVerificationPath(game: Game, market: ViewerMarket): WatchPath {
   return {
     id: `${game.id}-${market.zip}-local-review`,
-    label: "Local broadcast check",
+    label: "Check local listing",
     network: "Local TV coverage",
     medium: "ota_tv",
     territory: market.dma,
     entitlement: "free",
     requirement: "none",
     devices: ["antenna", "live-TV bundle"],
-    source: "ZIP lookup; local listing confirmation pending",
+    source: "ZIP market resolver; provider guide confirmation required",
     verifiedAt: new Date().toISOString(),
     confidence: "pending",
-    note: `ZIP ${market.zip} resolves to ${market.city}. Use your provider guide to confirm the exact local channel for this game.`,
+    note: `ZIP ${market.zip} resolves to ${market.city}. Use your provider guide to confirm the exact local channel and game carriage.`,
     href: "https://www.nfl.com/ways-to-watch",
     ctaLabel: "Open NFL guide",
   };
@@ -1272,12 +1272,38 @@ function dateLabel(dateKey: string) {
   }).format(new Date(`${dateKey}T12:00:00`));
 }
 
-function confidenceLabel(market: ViewerMarket) {
-  if (market.verification === "confirmed") return "Verified sample market";
-  if (market.verification === "estimated") return "Estimated local TV market";
-  if (market.verification === "lookup") return "Location found; local TV market pending";
-  return "ZIP accepted; local TV market pending";
-}
+const marketResolver = {
+  confidenceLabel(market: ViewerMarket) {
+    if (market.verification === "confirmed") return "Verified";
+    if (market.verification === "estimated") return "Estimated";
+    return "Needs provider confirmation";
+  },
+  confidenceTone(market: ViewerMarket) {
+    if (market.verification === "confirmed") return "is-verified";
+    if (market.verification === "estimated") return "is-estimated";
+    return "needs-confirmation";
+  },
+  statusMessage(market: ViewerMarket) {
+    if (market.verification === "confirmed") return "Verified sample market loaded.";
+    if (market.verification === "estimated") return "ZIP found. Local TV market estimated.";
+    if (market.verification === "lookup") {
+      return "ZIP found. Use your provider guide for the exact local channel.";
+    }
+    return "ZIP accepted. Use your provider guide for local channel confirmation.";
+  },
+  detail(market: ViewerMarket) {
+    if (market.verification === "confirmed") {
+      return "This sample market has modeled local affiliate data.";
+    }
+    if (market.verification === "estimated") {
+      return "This market is estimated from ZIP, city, and regional coverage patterns.";
+    }
+    if (market.verification === "lookup") {
+      return "The ZIP resolves to a real place, but exact TV market and affiliate data needs a provider guide.";
+    }
+    return "The ZIP format is accepted, but the place and local market could not be confirmed automatically.";
+  },
+};
 
 function fallbackMarket(zip: string, city: string, state: string): ViewerMarket {
   const inferred = inferredMarkets.find((item) => item.matches(zip, city, state));
@@ -1292,8 +1318,8 @@ function fallbackMarket(zip: string, city: string, state: string): ViewerMarket 
   return {
     zip,
     city: `${city}, ${state}`,
-    dma: "Local TV market pending",
-    localAffiliate: "Affiliate confirmation pending",
+    dma: "Provider confirmation needed",
+    localAffiliate: "Confirm exact station with provider guide",
     verification: "lookup",
   };
 }
@@ -1377,11 +1403,7 @@ export default function Home() {
     const knownMarket = knownMarkets.find((item) => item.zip === normalizedZip);
     if (knownMarket) {
       setMarket(knownMarket);
-      setZipStatus(
-        knownMarket.verification === "confirmed"
-          ? "Verified sample market loaded."
-          : "ZIP found. Local TV market estimated; verify against your provider guide.",
-      );
+      setZipStatus(marketResolver.statusMessage(knownMarket));
       return;
     }
 
@@ -1401,20 +1423,17 @@ export default function Home() {
       const state = place?.["state abbreviation"] ?? "US";
       const resolvedMarket = fallbackMarket(normalizedZip, city, state);
       setMarket(resolvedMarket);
-      setZipStatus(
-        resolvedMarket.verification === "estimated"
-          ? "ZIP found. Local TV market estimated; verify against your provider guide."
-          : "ZIP found. Local TV market coverage is pending confirmation.",
-      );
+      setZipStatus(marketResolver.statusMessage(resolvedMarket));
     } catch {
-      setMarket({
+      const unverifiedMarket: ViewerMarket = {
         zip: normalizedZip,
         city: `ZIP ${normalizedZip}`,
-        dma: "Local TV market pending",
-        localAffiliate: "Affiliate confirmation pending",
+        dma: "Provider confirmation needed",
+        localAffiliate: "Confirm exact station with provider guide",
         verification: "unverified",
-      });
-      setZipStatus("ZIP accepted. City and local TV market confirmation are pending.");
+      };
+      setMarket(unverifiedMarket);
+      setZipStatus(marketResolver.statusMessage(unverifiedMarket));
     }
   }
 
@@ -1492,18 +1511,31 @@ export default function Home() {
               <dd>{market.dma}</dd>
             </div>
             <div>
-              <dt>Local affiliate</dt>
-              <dd>{market.localAffiliate}</dd>
-            </div>
-            <div>
-              <dt>Confidence</dt>
-              <dd>{confidenceLabel(market)}</dd>
-            </div>
-            <div>
-              <dt>Provider status</dt>
-              <dd>Channel number delegated to provider guide</dd>
+              <dt>Match confidence</dt>
+              <dd>
+                <span className={`market-confidence ${marketResolver.confidenceTone(market)}`}>
+                  {marketResolver.confidenceLabel(market)}
+                </span>
+              </dd>
             </div>
           </dl>
+          <details className="market-detail">
+            <summary>Market details</summary>
+            <dl className="context-list">
+              <div>
+                <dt>Local station</dt>
+                <dd>{market.localAffiliate}</dd>
+              </div>
+              <div>
+                <dt>Resolver note</dt>
+                <dd>{marketResolver.detail(market)}</dd>
+              </div>
+              <div>
+                <dt>Channel guide</dt>
+                <dd>Confirm exact channel number and game availability with your TV provider or antenna guide.</dd>
+              </div>
+            </dl>
+          </details>
         </div>
 
         <div className="setup-panel">
